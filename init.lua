@@ -1,3 +1,6 @@
+local path = minetest.get_modpath("levels")
+dofile(path .. "/api.lua")
+
 local levels = {}
 
 local SPEED_MULTIPLER = 0.05
@@ -6,9 +9,9 @@ local JUMP_MULTIPLER = 0.01
 function levels.update_stats(player_name)
   local player = minetest.get_player_by_name(player_name)
 
-  local player_agi = tonumber(player:get_attribute("levels:agi") or 0)
-  local player_str = tonumber(player:get_attribute("levels:str") or 0)
-  local player_int = tonumber(player:get_attribute("levels:int") or 0)
+  local player_agi = levels_api.get_player_attribute(player_name, "levels:agi")
+  local player_str = levels_api.get_player_attribute(player_name, "levels:str")
+  local player_int = levels_api.get_player_attribute(player_name, "levels:int")
 
   player:set_physics_override({
     speed = 1.0 + player_agi * SPEED_MULTIPLER,
@@ -20,16 +23,11 @@ function levels.update_stats(player_name)
 end
 
 function levels.show_ui(player_name)
-  local player = minetest.get_player_by_name(player_name)
-  if not player then
-    return false
-  end
+  local player_agi = levels_api.get_player_attribute(player_name, "levels:agi")
+  local player_str = levels_api.get_player_attribute(player_name, "levels:str")
+  local player_int = levels_api.get_player_attribute(player_name, "levels:int")
 
-  local player_agi = tonumber(player:get_attribute("levels:agi") or 0)
-  local player_str = tonumber(player:get_attribute("levels:str") or 0)
-  local player_int = tonumber(player:get_attribute("levels:int") or 0)
-
-  local upgrade_points = tonumber(player:get_attribute("levels:points") or 0)
+  local upgrade_points = levels_api.get_player_attribute(player_name, "levels:points")
 
   local levels_ui = "size[3,5;]" ..
                     "button[1,0.5;1,1;upgrade_agi;+]" ..
@@ -78,31 +76,31 @@ minetest.register_chatcommand("levels", {
 	end,
 })
 minetest.register_on_player_receive_fields(function(player, formname, fields)
+  player_name = player:get_player_name()
 	if formname == "levels:levels_formspec" then
-    local player_agi = tonumber(player:get_attribute("levels:agi") or 0)
-    local player_str = tonumber(player:get_attribute("levels:str") or 0)
-    local player_int = tonumber(player:get_attribute("levels:int") or 0)
+    local player_agi = levels_api.get_player_attribute(player_name, "levels:agi")
+    local player_str = levels_api.get_player_attribute(player_name, "levels:str")
+    local player_int = levels_api.get_player_attribute(player_name, "levels:int")
 
-    local upgrade_points = tonumber(player:get_attribute("levels:points") or 0)
+    local upgrade_points = levels_api.get_player_attribute(player_name, "levels:points")
 
     if fields.upgrade_agi then
-      player:set_attribute("levels:agi", player_agi + 1)
-      player:set_attribute("levels:points", upgrade_points - 1)
-      levels.update_stats(player:get_player_name())
-      levels.show_ui(player:get_player_name())
+      levels_api.increment_attribute(player_name, "levels:agi")
+      levels_api.decrement_attribute(player_name, "levels:points")
+      levels.update_stats(player_name)
+      levels.show_ui(player_name)
     end
     if fields.upgrade_str then
-      player:set_attribute("levels:str", player_str + 1)
-      player:set_attribute("levels:points", upgrade_points - 1)
-      levels.update_stats(player:get_player_name())
-      levels.show_ui(player:get_player_name())
+      levels_api.increment_attribute(player_name, "levels:str")
+      levels_api.decrement_attribute(player_name, "levels:points")
+      levels.update_stats(player_name)
+      levels.show_ui(player_name)
     end
     if fields.upgrade_int then
-      player:set_attribute("levels:int", player_int + 1)
-      player:set_attribute("levels:points", upgrade_points - 1)
-      levels.update_stats(player:get_player_name())
-      levels.show_ui(player:get_player_name())
+      levels_api.increment_attribute(player_name, "levels:int")
+      levels_api.decrement_attribute(player_name, "levels:points")
+      levels.update_stats(player_name)
+      levels.show_ui(player_name)
     end
-		minetest.chat_send_all("Player "..player:get_player_name().." submitted fields "..dump(fields))
 	end
 end)
