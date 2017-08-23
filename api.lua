@@ -25,3 +25,9 @@ function levels_api.decrement_attribute(name, attr)
   levels_api.set_player_attribute(name, attr, levels_api.get_player_attribute(name, attr) - 1)
   return true
 end
+function levels_api.upgrade_attribute(name, attr)
+  levels_api.increment_attribute(name, attr)
+  levels_api.decrement_attribute(name, "levels:points")
+  levels.update_stats(name)
+  levels.show_ui(name)
+end

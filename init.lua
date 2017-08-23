@@ -59,13 +59,6 @@ function levels.show_ui(player_name)
 end
 minetest.register_on_joinplayer(function(player)
   player:set_attribute("levels:points", 20)
-  player:hud_add({
-    hud_elem_type = "image",
-    scale = {x=2,y=2},
-    text = "3.png",
-    position = {x=0.5,y=0.5},
-    offset = {x=0,y=0}
-  })
   levels.update_stats(player:get_player_name())
 end)
 minetest.register_chatcommand("levels", {
@@ -78,29 +71,14 @@ minetest.register_chatcommand("levels", {
 minetest.register_on_player_receive_fields(function(player, formname, fields)
   player_name = player:get_player_name()
 	if formname == "levels:levels_formspec" then
-    local player_agi = levels_api.get_player_attribute(player_name, "levels:agi")
-    local player_str = levels_api.get_player_attribute(player_name, "levels:str")
-    local player_int = levels_api.get_player_attribute(player_name, "levels:int")
-
-    local upgrade_points = levels_api.get_player_attribute(player_name, "levels:points")
-
     if fields.upgrade_agi then
-      levels_api.increment_attribute(player_name, "levels:agi")
-      levels_api.decrement_attribute(player_name, "levels:points")
-      levels.update_stats(player_name)
-      levels.show_ui(player_name)
+      levels_api.upgrade_attribute(player_name, "levels:agi")
     end
     if fields.upgrade_str then
-      levels_api.increment_attribute(player_name, "levels:str")
-      levels_api.decrement_attribute(player_name, "levels:points")
-      levels.update_stats(player_name)
-      levels.show_ui(player_name)
+      levels_api.upgrade_attribute(player_name, "levels:str")
     end
     if fields.upgrade_int then
-      levels_api.increment_attribute(player_name, "levels:int")
-      levels_api.decrement_attribute(player_name, "levels:points")
-      levels.update_stats(player_name)
-      levels.show_ui(player_name)
+      levels_api.upgrade_attribute(player_name, "levels:int")
     end
 	end
 end)
