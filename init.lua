@@ -27,6 +27,8 @@ function levels.show_ui(player_name)
   local player_str = levels_api.get_player_attribute(player_name, "levels:str")
   local player_int = levels_api.get_player_attribute(player_name, "levels:int")
 
+  local player_lvl = levels_api.get_player_attribute(player_name, "levels:level")
+
   local upgrade_points = levels_api.get_player_attribute(player_name, "levels:points")
 
   local levels_ui = "size[3,5;]" ..
@@ -39,7 +41,7 @@ function levels.show_ui(player_name)
                     "label[2,0.75;" .. player_agi .. "]" ..
                     "label[2,1.75;" .. player_str .. "]" ..
                     "label[2,2.75;" .. player_int .. "]" ..
-                    "label[0,0;Character level 29]" ..
+                    "label[0,0;Character level " .. player_lvl .. "]" ..
                     "label[0,3.5;Leftover points: " .. upgrade_points .. "]" ..
                     "button_exit[0,4;2.75,1;exit;Done]"
   if upgrade_points == 0 then
@@ -50,7 +52,7 @@ function levels.show_ui(player_name)
                 "label[2,0.75;" .. player_agi .. "]" ..
                 "label[2,1.75;" .. player_str .. "]" ..
                 "label[2,2.75;" .. player_int .. "]" ..
-                "label[0,0;Character level 29]" ..
+                "label[0,0;Character level " .. player_lvl .. "]" ..
                 "label[0,3.5;Leftover points: " .. upgrade_points .. "]" ..
                 "button_exit[0,4;2.75,1;exit;Done]"
   end
@@ -68,17 +70,38 @@ minetest.register_chatcommand("levels", {
 		return true
 	end,
 })
+minetest.register_chatcommand("givexp", {
+	description = "Give yourself some nice XP!",
+	func = function(name, text)
+    levels_api.set_player_attribute(name, "levels:xp", levels_api.get_player_attribute(name, "levels:xp") + text)
+    levels_api.update_level(name)
+    return true
+	end,
+})
+minetest.register_chatcommand("getxp", {
+	description = "How much XP have we got here?",
+	func = function(name, text)
+    levels_api.update_level(name)
+		return true, levels_api.get_player_attribute(name, "levels:xp")
+	end,
+})
+function levels.upgrade_attribute(name, attr)
+  levels_api.increment_attribute(name, attr)
+  levels_api.decrement_attribute(name, "levels:points")
+  levels.update_stats(name)
+  levels.show_ui(name)
+end
 minetest.register_on_player_receive_fields(function(player, formname, fields)
   player_name = player:get_player_name()
 	if formname == "levels:levels_formspec" then
     if fields.upgrade_agi then
-      levels_api.upgrade_attribute(player_name, "levels:agi")
+      levels.upgrade_attribute(player_name, "levels:agi")
     end
     if fields.upgrade_str then
-      levels_api.upgrade_attribute(player_name, "levels:str")
+      levels.upgrade_attribute(player_name, "levels:str")
     end
     if fields.upgrade_int then
-      levels_api.upgrade_attribute(player_name, "levels:int")
+      levels.upgrade_attribute(player_name, "levels:int")
     end
-	end
+  end
 end)
