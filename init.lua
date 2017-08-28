@@ -3,6 +3,16 @@ dofile(path .. "/api.lua")
 
 local levels = {}
 
+local ores = {
+  {"default:stone_with_coal", 5},
+  {"default:stone_with_iron", 10},
+  {"default:stone_with_copper", 10},
+  {"default:stone_with_tin", 15},
+  {"default:stone_with_gold", 25},
+  {"default:stone_with_mese", 30},
+  {"default:stone_with_diamond", 30}
+}
+
 local SPEED_MULTIPLER = 0.05
 local JUMP_MULTIPLER = 0.01
 
@@ -64,7 +74,7 @@ minetest.register_on_joinplayer(function(player)
   levels_api.update_hud(player:get_player_name())
 end)
 minetest.register_on_newplayer(function(player)
-	levels_api.increment_attribute("levels:points")
+	levels_api.increment_attribute(player:get_player_name(), "levels:points")
 end)
 minetest.register_chatcommand("levels", {
 	description = "Open levels UI",
@@ -84,7 +94,6 @@ minetest.register_chatcommand("givexp", {
 minetest.register_chatcommand("getxp", {
 	description = "How much XP have we got here?",
 	func = function(name, text)
-    levels_api.update_level(name)
 		return true, levels_api.get_player_attribute(name, "levels:xp", 0)
 	end,
 })
@@ -105,6 +114,15 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
     end
     if fields.upgrade_int then
       levels.upgrade_attribute(player_name, "levels:int")
+    end
+  end
+end)
+minetest.register_on_dignode(function(pos, oldnode, player)
+  local name = oldnode.name
+  for key,value in pairs(ores) do
+    if value[1] == name then
+      levels_api.set_player_attribute(player:get_player_name(), "levels:xp", levels_api.get_player_attribute("singleplayer","levels:xp", 0) + value[2])
+      levels_api.update_level(player:get_player_name())
     end
   end
 end)
